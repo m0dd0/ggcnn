@@ -68,11 +68,14 @@ class GraspDatasetBase(torch.utils.data.Dataset):
         if self.include_rgb:
             rgb_img = self.get_rgb(idx, rot, zoom_factor)
 
-        # Load the grasps
-        bbs = self.get_gtbb(idx, rot, zoom_factor)
 
-        pos_img, ang_img, width_img = bbs.draw((self.output_size, self.output_size))
-        width_img = np.clip(width_img, 0.0, 150.0)/150.0
+        #REMOVED: because no annotated grasps in YCB
+        # Load the grasps
+        #bbs = self.get_gtbb(idx, rot, zoom_factor)
+
+        
+        #pos_img, ang_img, width_img = bbs.draw((self.output_size, self.output_size))
+        #width_img = np.clip(width_img, 0.0, 150.0)/150.0
 
         if self.include_depth and self.include_rgb:
             x = self.numpy_to_torch(
@@ -87,12 +90,15 @@ class GraspDatasetBase(torch.utils.data.Dataset):
         elif self.include_rgb:
             x = self.numpy_to_torch(rgb_img)
 
-        pos = self.numpy_to_torch(pos_img)
-        cos = self.numpy_to_torch(np.cos(2*ang_img))
-        sin = self.numpy_to_torch(np.sin(2*ang_img))
-        width = self.numpy_to_torch(width_img)
+        #REMOVED: because no annotated grasps in YCB
+        #pos = self.numpy_to_torch(pos_img)
+        #cos = self.numpy_to_torch(np.cos(2*ang_img))
+        #sin = self.numpy_to_torch(np.sin(2*ang_img))
+        #width = self.numpy_to_torch(width_img)
 
-        return x, (pos, cos, sin, width), idx, rot, zoom_factor
+        #return x, (pos, cos, sin, width), idx, rot, zoom_factor
+
+        return x, idx, rot, zoom_factor
 
     def __len__(self):
         return len(self.grasp_files)

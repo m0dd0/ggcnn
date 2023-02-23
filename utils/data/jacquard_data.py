@@ -36,6 +36,7 @@ class JacquardDataset(GraspDatasetBase):
         self.depth_files = depthf[int(l*start):int(l*end)]
         self.rgb_files = rgbf[int(l*start):int(l*end)]
 
+
     def get_gtbb(self, idx, rot=0, zoom=1.0):
         gtbbs = grasp.GraspRectangles.load_from_jacquard_file(self.grasp_files[idx], scale=self.output_size / 1024.0)
         c = self.output_size//2
@@ -45,6 +46,7 @@ class JacquardDataset(GraspDatasetBase):
 
     def get_depth(self, idx, rot=0, zoom=1.0):
         depth_img = image.DepthImage.from_tiff(self.depth_files[idx])
+        print('DEPTH IMAGE: Type: {}, Shape: {}'.format(type(depth_img), depth_img.shape))
         depth_img.rotate(rot)
         depth_img.normalise()
         depth_img.zoom(zoom)

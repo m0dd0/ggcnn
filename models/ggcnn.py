@@ -42,7 +42,11 @@ class GGCNN(nn.Module):
         sin_output = self.sin_output(x)
         width_output = self.width_output(x)
 
-        return pos_output, cos_output, sin_output, width_output
+        # return pos_output, cos_output, sin_output, width_output
+        return {'pos': pos_output,
+                'cos': cos_output,
+                'sin': sin_output,
+                'width': width_output}
 
     def compute_loss(self, xc, yc):
         y_pos, y_cos, y_sin, y_width = yc

@@ -120,6 +120,16 @@ class Image:
         i = self.copy()
         i.zoom(*args, **kwargs)
         return i
+    
+    def mask(self, mask_value, set_value):
+        masked_image = self.img.copy()
+        #create mask (binary np array same size as image)
+        mask = self.img > mask_value
+        #apply mask to image and assign pixels to new value
+        masked_image[mask] = set_value
+
+        self.img = masked_image
+        return
 
 
 class DepthImage(Image):
@@ -168,6 +178,12 @@ class DepthImage(Image):
     @classmethod
     def from_tiff(cls, fname):
         return cls(imread(fname))
+    
+    # added function to load depth_image from .npy file
+    @classmethod
+    def from_npy(cls, fname):
+        img = np.load(fname)
+        return cls(img)
 
     def inpaint(self, missing_value=0):
         """
