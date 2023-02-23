@@ -1,0 +1,8 @@
+Metadata-Version: 2.1
+Name: ggcnn
+Version: 0.1
+Summary: GGCNN grasp generation
+Home-page: https://alr.anthropomatik.kit.edu/
+Author: Autonomous Learning Robots @ KIT
+License: MIT
+License-File: LICENSE
