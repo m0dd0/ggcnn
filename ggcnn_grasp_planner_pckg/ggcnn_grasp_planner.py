@@ -39,11 +39,6 @@ net.cuda()
 
 depth_img_path = '/home/i53/student/b_woerz/Documents/ycb_sim_data_1/ycb_simulation_sample_002_cracker_box/depth_img.npy'
 
-# rotation always 0
-rotation = 0
-# zoom = 1 means no zoom
-zoom = 1.0 
-output_size = 300
 
 # wird dann in simulation durch cam.intrinsics, ersetzt
 # [[self.fx, 0, self.cx], [0, self.fy, self.cy], [0, 0, 1]]
@@ -56,21 +51,18 @@ cam_quat_input = [0.7071067811865476, 0.0, 0.0, -0.7071067811865475]
 local_depth_image_instance = image.DepthImage.from_npy(depth_img_path)
 local_depth_image = local_depth_image_instance.img
 
-#determine how many grasps to output
-number_grasps = 10
-
-def _get_crop_attrs():
+def _get_crop_attrs(output_size):
         # TODO: improve function to get center - not hardcoded
         center = (240,320)
         left = max(0, min(center[1] - output_size // 2, 640 - output_size))
         top = max(0, min(center[0] - output_size // 2, 480 - output_size))
         return center, left, top
 
-def preprocessing(depth_img, rot, zoom):
+def preprocessing(depth_img, rot, zoom, output_size):
         #TODO: define mask more universal
         og_depth_img = image.DepthImage(depth_img.img)
         
-        center, left, top = _get_crop_attrs()
+        center, left, top = _get_crop_attrs(output_size)
         depth_img.rotate(rot, center)
         depth_img.crop((top, left), (min(480, top + output_size), min(640, left + output_size)))
         og_depth_img.crop((top, left), (min(480, top + output_size), min(640, left + output_size)))
@@ -102,8 +94,8 @@ def get_ggcnn_output(depth_img, model_path = model_path):
         q_img, ang_img, width_img = post_process_output(pred['pos'], pred['cos'], pred['sin'], pred['width'] )
         return q_img, ang_img, width_img
 
-def uncrop_2D_grasps(grasps2D_list):
-    crop_center, left, top = _get_crop_attrs()
+def uncrop_2D_grasps(grasps2D_list, output_size):
+    crop_center, left, top = _get_crop_attrs(output_size)
     for g in grasps2D_list:
         g.center = list(g.center)  # Convert tuple to list
         g.center[0] += top  # update y coordinate
@@ -211,12 +203,12 @@ def get_6D_grasps(grasps2D_list, camera_intrinsics, cam_pos, cam_quat):
     return grasps6D
 
 
-def ggcnn_get_grasp(depth_image, camera_intrinsics, cam_pos, cam_quat, rotation=0.0, zoom=1.0, output_size = 300):
+def ggcnn_get_grasp(depth_image, camera_intrinsics, cam_pos, cam_quat, number_grasps, rotation=0.0, zoom=1.0, output_size = 300):
 
     depth_img_inst = image.DepthImage(depth_image)
 
     #preprocessing image
-    og_depth_img, preprocessed_depth_image = preprocessing(depth_img_inst, rotation, zoom)
+    og_depth_img, preprocessed_depth_image = preprocessing(depth_img_inst, rotation, zoom, output_size)
 
     #passing image through ggcnn -> (300 X 300) images for position, angle, width
     depth_image_tens = numpy_to_torch(preprocessed_depth_image)
@@ -228,7 +220,7 @@ def ggcnn_get_grasp(depth_image, camera_intrinsics, cam_pos, cam_quat, rotation=
     # hier wird auch depth Wert initialisiert
     grasps2D = detect_grasps(og_depth_img, q_img, ang_img, no_grasps=number_grasps)
     print('2D GRASP Center: {}, Angle: {}'.format(grasps2D[0].center, grasps2D[0].angle))
-    grasps2D = uncrop_2D_grasps(grasps2D)
+    grasps2D = uncrop_2D_grasps(grasps2D, output_size)
     print('UNCROPPED 2D GRASP Center: {}'.format(grasps2D[0].center))
 
     grasps6D = get_6D_grasps(grasps2D, camera_intrinsics, cam_pos, cam_quat)
@@ -248,7 +240,7 @@ def ggcnn_get_grasp(depth_image, camera_intrinsics, cam_pos, cam_quat, rotation=
 
 if __name__ == '__main__':
     
-    grasps6D_list = ggcnn_get_grasp(local_depth_image, camera_intrinsics_input, cam_pos_input, cam_quat_input)
+    grasps6D_list = ggcnn_get_grasp(local_depth_image, camera_intrinsics_input, cam_pos_input, cam_quat_input, 10)
     
 
     
