@@ -1,11 +1,15 @@
 
+import matplotlib.pyplot as plt
 
 from skimage.draw import polygon
+
 from skimage.feature import peak_local_max
 
 import numpy as np
 
-import matplotlib.pyplot as plt
+from pathlib import Path
+
+
 
 
 def _gr_text_to_no(l, offset=(0, 0)):
@@ -440,7 +444,12 @@ def detect_grasps(depth_img, q_img, ang_img, width_img=None, no_grasps=1):
     :param no_grasps: Max number of grasps to return
     :return: list of Grasps
     """
-    local_max = peak_local_max(q_img, min_distance=20, threshold_abs=0.2, num_peaks=no_grasps)
+    fig, ax = plt.subplots( nrows=1, ncols=2, figsize=(10, 5) )  # create figure & 1 axis
+    ax[0].imshow(q_img)
+    
+    fig.savefig(Path.home() / "Pictures" / "detect 2D grasps")
+
+    local_max = peak_local_max(q_img, min_distance=20, num_peaks=no_grasps)
 
     grasps = []
     for grasp_point_array in local_max:

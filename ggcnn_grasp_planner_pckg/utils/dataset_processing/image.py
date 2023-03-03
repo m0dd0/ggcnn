@@ -121,12 +121,18 @@ class Image:
         i.zoom(*args, **kwargs)
         return i
     
-    def mask(self, mask_value, set_value):
-        masked_image = self.img.copy()
-        #create mask (binary np array same size as image)
-        mask = self.img > mask_value
-        #apply mask to image and assign pixels to new value
-        masked_image[mask] = set_value
+    def mask(self, mask=None, mask_value=1.5, set_value =1.02):
+        if mask is not None:
+            mask = mask.astype(bool)
+            masked_image = np.zeros_like(self.img)
+            #masked_image = self.img.copy()
+            masked_image[mask] = self.img[mask]
+        else:
+            masked_image = self.img.copy()
+            #create mask (binary np array same size as image)
+            mask = self.img > mask_value
+            #apply mask to image and assign pixels to new value
+            masked_image[mask] = set_value
 
         self.img = masked_image
         return
