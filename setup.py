@@ -19,9 +19,5 @@ setup(
         "torchsummary",
         "tensorboardX",
     ],
-    extras_require={
-        "dev": [
-            "black",
-        ],
-    },
+    extras_require={"dev": ["black", "pylint", "jupyter", "ipykernel"]},
 )
