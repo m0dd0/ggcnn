@@ -1,27 +1,19 @@
-# import Dataset classes for Cornell and Jaquard
-# (inherit from GraspDatasetbase which inherits from torch.utils.data.Dataset)
+import torch
+import logging
+from pathlib import Path
+
+import numpy as np
+import matplotlib.pyplot as plt
+
 from .utils.data.cornell_data import CornellDataset
 from .utils.data.jacquard_data import JacquardDataset
 from .utils.data.ycb_data import YCBDataset
 from .utils.dataset_processing.grasp import Grasp, Grasp6D
 from .utils.dataset_processing.grasp import detect_grasps
-
-import torch
-
-# import model
-from .models.ggcnn import GGCNN
-
-# import post processing function (convert raw output GG-CNN to numpy arrays and apply filtering)
-from .models.common import post_process_output
-
-import logging
-
-import numpy as np
-import matplotlib.pyplot as plt
-
 from .utils.dataset_processing import grasp, image
 
-from pathlib import Path
+from .models.ggcnn import GGCNN
+from .models.common import post_process_output
 
 
 model_path = Path(__file__).parent / "ggcnn_weights_cornell/ggcnn_epoch_23_cornell"
