@@ -19,4 +19,9 @@ setup(
         "torchsummary",
         "tensorboardX",
     ],
+    extras_require={
+        "dev": [
+            "black",
+        ],
+    },
 )
