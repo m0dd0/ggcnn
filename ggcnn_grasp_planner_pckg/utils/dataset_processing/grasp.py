@@ -444,10 +444,10 @@ def detect_grasps(depth_img, q_img, ang_img, width_img=None, no_grasps=1):
     :param no_grasps: Max number of grasps to return
     :return: list of Grasps
     """
-    fig, ax = plt.subplots( nrows=1, ncols=2, figsize=(10, 5) )  # create figure & 1 axis
-    ax[0].imshow(q_img)
+    # fig, ax = plt.subplots( nrows=1, ncols=2, figsize=(10, 5) )  # create figure & 1 axis
+    # ax[0].imshow(q_img)
     
-    fig.savefig(Path.home() / "Pictures" / "detect 2D grasps")
+    # fig.savefig(Path.home() / "Pictures" / "detect 2D grasps")
 
     local_max = peak_local_max(q_img, min_distance=20, num_peaks=no_grasps)
 
