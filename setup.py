@@ -8,4 +8,15 @@ setup(
     author="Autonomous Learning Robots @ KIT",
     url="https://alr.anthropomatik.kit.edu/",
     packages=find_packages(),
+    intstall_requires=[
+        "numpy",
+        "opencv-python",
+        "matplotlib",
+        "scikit-image",
+        "imageio",
+        "torch",
+        "torchvision",
+        "torchsummary",
+        "tensorboardX",
+    ],
 )
