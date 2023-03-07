@@ -125,6 +125,7 @@ class Image:
         if mask is not None:
             mask = mask.astype(bool)
             masked_image = np.zeros_like(self.img)
+            masked_image[:] = 1.018996
             #masked_image = self.img.copy()
             masked_image[mask] = self.img[mask]
         else:
