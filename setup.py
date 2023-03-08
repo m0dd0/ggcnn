@@ -18,6 +18,9 @@ setup(
         "torchvision",
         "torchsummary",
         "tensorboardX",
+        "Pillow",
+        "nptyping",
+        "scipy",
     ],
     extras_require={"dev": ["black", "pylint", "jupyter", "ipykernel"]},
 )
