@@ -57,20 +57,14 @@ def preprocessing(depth_img, seg_img, rot, zoom, output_size):
     og_depth_img = image.DepthImage(depth_img.img)
     seg_img_inst = image.DepthImage(seg_img)
 
-    # fig, ax = plt.subplots(nrows=1, ncols=4, figsize=(10, 5))
-    center, left, top = _get_crop_attrs(output_size)
-    depth_img.rotate(rot, center)
-    depth_img.crop(
-        (top, left), (min(480, top + output_size), min(640, left + output_size))
-    )
-    og_depth_img.crop(
-        (top, left), (min(480, top + output_size), min(640, left + output_size))
-    )
-    if seg_img is not None:
-        seg_img_inst.crop(
-            (top, left), (min(480, top + output_size), min(640, left + output_size))
-        )
-    depth_img.mask(seg_img_inst.img)
+        fig, ax = plt.subplots( nrows=1, ncols=4, figsize=(10, 5) )
+        center, left, top = _get_crop_attrs(output_size)
+        depth_img.rotate(rot, center)
+        depth_img.crop((top, left), (min(480, top + output_size), min(640, left + output_size)))
+        og_depth_img.crop((top, left), (min(480, top + output_size), min(640, left + output_size)))
+        if seg_img is not None:
+            seg_img_inst.crop((top, left), (min(480, top + output_size), min(640, left + output_size)))
+        depth_img.mask(og_depth_img.img, mask = seg_img_inst.img)
 
     depth_img.normalise()
 
@@ -189,8 +183,7 @@ def transform_2D_grasp_to_6D(g, cam_intrinsics, cam_position, cam_quat):
     # print(f"Position Cam Perspective (x,y,z): {p_cam}")
     p_cam = np.array(p_cam).reshape((3, 1))
 
-    # print(f"CAM_QUAT {cam_quat}")
-    cam_quat = np.round(cam_quat, 10)
+    cam_quat = np.round(cam_quat,10)
 
     # cam_quat in rotationsmatrix umstellen (cam_rot)
     cam_rot = quaternion_to_rotation_matrix(cam_quat)

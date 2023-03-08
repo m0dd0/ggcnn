@@ -1,4 +1,3 @@
-
 import matplotlib.pyplot as plt
 
 from skimage.draw import polygon
@@ -8,8 +7,6 @@ from skimage.feature import peak_local_max
 import numpy as np
 
 from pathlib import Path
-
-
 
 
 def _gr_text_to_no(l, offset=(0, 0)):
@@ -27,6 +24,7 @@ class GraspRectangles:
     """
     Convenience class for loading and operating on sets of Grasp Rectangles.
     """
+
     def __init__(self, grs=None):
         if grs:
             self.grs = grs
@@ -45,9 +43,13 @@ class GraspRectangles:
         """
         # Fuck yeah python.
         if hasattr(GraspRectangle, attr) and callable(getattr(GraspRectangle, attr)):
-            return lambda *args, **kwargs: list(map(lambda gr: getattr(gr, attr)(*args, **kwargs), self.grs))
+            return lambda *args, **kwargs: list(
+                map(lambda gr: getattr(gr, attr)(*args, **kwargs), self.grs)
+            )
         else:
-            raise AttributeError("Couldn't find function %s in BoundingBoxes or BoundingBox" % attr)
+            raise AttributeError(
+                "Couldn't find function %s in BoundingBoxes or BoundingBox" % attr
+            )
 
     @classmethod
     def load_from_array(cls, arr):
@@ -81,12 +83,14 @@ class GraspRectangles:
                     break  # EOF
                 p1, p2, p3 = f.readline(), f.readline(), f.readline()
                 try:
-                    gr = np.array([
-                        _gr_text_to_no(p0),
-                        _gr_text_to_no(p1),
-                        _gr_text_to_no(p2),
-                        _gr_text_to_no(p3)
-                    ])
+                    gr = np.array(
+                        [
+                            _gr_text_to_no(p0),
+                            _gr_text_to_no(p1),
+                            _gr_text_to_no(p2),
+                            _gr_text_to_no(p3),
+                        ]
+                    )
 
                     grs.append(GraspRectangle(gr))
 
@@ -106,9 +110,9 @@ class GraspRectangles:
         grs = []
         with open(fname) as f:
             for l in f:
-                x, y, theta, w, h = [float(v) for v in l[:-1].split(';')]
+                x, y, theta, w, h = [float(v) for v in l[:-1].split(";")]
                 # index based on row, column (y,x), and the Jacquard dataset's angles are flipped around an axis.
-                grs.append(Grasp(np.array([y, x]), -theta/180.0*np.pi, w, h).as_gr)
+                grs.append(Grasp(np.array([y, x]), -theta / 180.0 * np.pi, w, h).as_gr)
         grs = cls(grs)
         grs.scale(scale)
         return grs
@@ -186,8 +190,8 @@ class GraspRectangles:
         """
         a = np.stack([gr.points for gr in self.grs])
         if pad_to:
-           if pad_to > len(self.grs):
-               a = np.concatenate((a, np.zeros((pad_to - len(self.grs), 4, 2))))
+            if pad_to > len(self.grs):
+                a = np.concatenate((a, np.zeros((pad_to - len(self.grs), 4, 2))))
         return a.astype(int)
 
     @property
@@ -204,6 +208,7 @@ class GraspRectangle:
     """
     Representation of a grasp in the common "Grasp Rectangle" format.
     """
+
     def __init__(self, points):
         self.points = points
 
@@ -217,7 +222,7 @@ class GraspRectangle:
         """
         dx = self.points[1, 1] - self.points[0, 1]
         dy = self.points[1, 0] - self.points[0, 0]
-        return (np.arctan2(-dy, dx) + np.pi/2) % np.pi - np.pi/2
+        return (np.arctan2(-dy, dx) + np.pi / 2) % np.pi - np.pi / 2
 
     @property
     def as_grasp(self):
@@ -240,7 +245,7 @@ class GraspRectangle:
         """
         dx = self.points[1, 1] - self.points[0, 1]
         dy = self.points[1, 0] - self.points[0, 0]
-        return np.sqrt(dx ** 2 + dy ** 2)
+        return np.sqrt(dx**2 + dy**2)
 
     @property
     def width(self):
@@ -249,7 +254,7 @@ class GraspRectangle:
         """
         dy = self.points[2, 1] - self.points[1, 1]
         dx = self.points[2, 0] - self.points[1, 0]
-        return np.sqrt(dx ** 2 + dy ** 2)
+        return np.sqrt(dx**2 + dy**2)
 
     def polygon_coords(self, shape=None):
         """
@@ -263,16 +268,21 @@ class GraspRectangle:
         :param shape: Output shape
         :return: Indices of pixels within the centre thrid of the grasp rectangle.
         """
-        return Grasp(self.center, self.angle, self.length/3, self.width).as_gr.polygon_coords(shape)
+        return Grasp(
+            self.center, self.angle, self.length / 3, self.width
+        ).as_gr.polygon_coords(shape)
 
-    def iou(self, gr, angle_threshold=np.pi/6):
+    def iou(self, gr, angle_threshold=np.pi / 6):
         """
         Compute IoU with another grasping rectangle
         :param gr: GraspingRectangle to compare
         :param angle_threshold: Maximum angle difference between GraspRectangles
         :return: IoU between Grasp Rectangles
         """
-        if abs((self.angle - gr.angle + np.pi/2) % np.pi - np.pi/2) > angle_threshold:
+        if (
+            abs((self.angle - gr.angle + np.pi / 2) % np.pi - np.pi / 2)
+            > angle_threshold
+        ):
             return 0
 
         rr1, cc1 = self.polygon_coords()
@@ -291,7 +301,7 @@ class GraspRectangle:
         if union == 0:
             return 0
         intersection = np.sum(canvas == 2)
-        return intersection/union
+        return intersection / union
 
     def copy(self):
         """
@@ -344,12 +354,7 @@ class GraspRectangle:
         :param factor: Zoom factor
         :param center: Zoom zenter (focus point, e.g. image center)
         """
-        T = np.array(
-            [
-                [1/factor, 0],
-                [0, 1/factor]
-            ]
-        )
+        T = np.array([[1 / factor, 0], [0, 1 / factor]])
         c = np.array(center).reshape((1, 2))
         self.points = ((np.dot(T, (self.points - c).T)).T + c).astype(int)
 
@@ -358,9 +363,12 @@ class Grasp:
     """
     A Grasp represented by a center pixel, rotation angle and gripper width (length)
     """
+
     def __init__(self, center, angle, depth, length=60, width=30):
         self.center = center
-        self.angle = angle  # Positive angle means rotate anti-clockwise from horizontal.
+        self.angle = (
+            angle  # Positive angle means rotate anti-clockwise from horizontal.
+        )
         self.length = length
         self.width = width
         self.depth = depth
@@ -379,14 +387,16 @@ class Grasp:
         y2 = self.center[0] - self.length / 2 * yo
         x2 = self.center[1] + self.length / 2 * xo
 
-        return GraspRectangle(np.array(
-            [
-             [y1 - self.width/2 * xo, x1 - self.width/2 * yo],
-             [y2 - self.width/2 * xo, x2 - self.width/2 * yo],
-             [y2 + self.width/2 * xo, x2 + self.width/2 * yo],
-             [y1 + self.width/2 * xo, x1 + self.width/2 * yo],
-             ]
-        ).astype(float))
+        return GraspRectangle(
+            np.array(
+                [
+                    [y1 - self.width / 2 * xo, x1 - self.width / 2 * yo],
+                    [y2 - self.width / 2 * xo, x2 - self.width / 2 * yo],
+                    [y2 + self.width / 2 * xo, x2 + self.width / 2 * yo],
+                    [y1 + self.width / 2 * xo, x1 + self.width / 2 * yo],
+                ]
+            ).astype(float)
+        )
 
     def max_iou(self, grs):
         """
@@ -416,7 +426,14 @@ class Grasp:
         :return: string in Jacquard format
         """
         # Output in jacquard format.
-        return '%0.2f;%0.2f;%0.2f;%0.2f;%0.2f' % (self.center[1]*scale, self.center[0]*scale, -1*self.angle*180/np.pi, self.length*scale, self.width*scale)
+        return "%0.2f;%0.2f;%0.2f;%0.2f;%0.2f" % (
+            self.center[1] * scale,
+            self.center[0] * scale,
+            -1 * self.angle * 180 / np.pi,
+            self.length * scale,
+            self.width * scale,
+        )
+
 
 class Grasp6D:
     """6D cartesian grasp
@@ -429,11 +446,9 @@ class Grasp6D:
     """
 
     def __init__(self, position, orientation):
-
         self.position = position
         self.orientation = orientation
 
-        
 
 def detect_grasps(depth_img, q_img, ang_img, width_img=None, no_grasps=1):
     """
@@ -444,15 +459,18 @@ def detect_grasps(depth_img, q_img, ang_img, width_img=None, no_grasps=1):
     :param no_grasps: Max number of grasps to return
     :return: list of Grasps
     """
-    # fig, ax = plt.subplots( nrows=1, ncols=2, figsize=(10, 5) )  # create figure & 1 axis
+    # fig, ax = plt.subplots( nrows=1, ncols=2, figsize=(10, 5) )
     # ax[0].imshow(q_img)
-    
     # fig.savefig(Path.home() / "Pictures" / "detect 2D grasps")
 
     local_max = peak_local_max(q_img, min_distance=20, num_peaks=no_grasps)
+    # sort the local max grasps list by actual global grasp quality
+    pixel_values = q_img[local_max[:, 0], local_max[:, 1]]
+    sorted_indices = np.argsort(pixel_values)[::-1]
+    sorted_max = local_max[sorted_indices]
 
     grasps = []
-    for grasp_point_array in local_max:
+    for grasp_point_array in sorted_max:
         grasp_point = tuple(grasp_point_array)
 
         grasp_angle = ang_img[grasp_point]
@@ -462,7 +480,7 @@ def detect_grasps(depth_img, q_img, ang_img, width_img=None, no_grasps=1):
         g = Grasp(grasp_point, grasp_angle, grasp_depth)
         if width_img is not None:
             g.length = width_img[grasp_point]
-            g.width = g.length/2
+            g.width = g.length / 2
 
         grasps.append(g)
 
