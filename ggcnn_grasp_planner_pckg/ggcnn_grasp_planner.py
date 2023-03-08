@@ -70,7 +70,7 @@ def preprocessing(depth_img, seg_img, rot, zoom, output_size):
         og_depth_img.crop((top, left), (min(480, top + output_size), min(640, left + output_size)))
         if seg_img is not None:
             seg_img_inst.crop((top, left), (min(480, top + output_size), min(640, left + output_size)))
-        depth_img.mask(seg_img_inst.img)
+        depth_img.mask(og_depth_img.img, mask = seg_img_inst.img)
 
         depth_img.normalise()
 
@@ -120,8 +120,7 @@ def quaternion_to_rotation_matrix(q):
     - R (3x3 numpy array): A rotation matrix corresponding to the input quaternion.
     """
     w, x, y, z = q
-    print("W<X<Y<Z")
-    print(w,x,y,z)
+
     R = np.array([[1-2*y*y-2*z*z, 2*x*y-2*w*z, 2*x*z+2*w*y],
                   [2*x*y+2*w*z, 1-2*x*x-2*z*z, 2*y*z-2*w*x],
                   [2*x*z-2*w*y, 2*y*z+2*w*x, 1-2*x*x-2*y*y]])
@@ -167,7 +166,7 @@ def transform_2D_grasp_to_6D(g, cam_intrinsics, cam_position, cam_quat):
 
     p_img_x = g.center[1] # u
     p_img_y = g.center[0] # v
-    print(f"Position Image Perspective (x, y): ({p_img_x},{p_img_y})")
+    #print(f"Position Image Perspective (x, y): ({p_img_x},{p_img_y})")
 
     #grasp position in cam coordinates
     """
@@ -180,17 +179,15 @@ def transform_2D_grasp_to_6D(g, cam_intrinsics, cam_position, cam_quat):
     p_cam_y = (p_img_y - cy) * p_cam_z / fy
 
     p_cam = [p_cam_x, p_cam_y, p_cam_z]
-    print(f"Position Cam Perspective (x,y,z): {p_cam}")
+    #print(f"Position Cam Perspective (x,y,z): {p_cam}")
     p_cam = np.array(p_cam).reshape((3, 1))
 
-    print(f"CAM_QUAT {cam_quat}")
     cam_quat = np.round(cam_quat,10)
 
     #cam_quat in rotationsmatrix umstellen (cam_rot)
     cam_rot = quaternion_to_rotation_matrix(cam_quat)
     
 
-    print(f"CAM_ROT {cam_rot}")
 
     #cam_rot invertieren (cam_rot_inv)
     cam_rot_inv = np.linalg.inv(cam_rot)
@@ -199,8 +196,6 @@ def transform_2D_grasp_to_6D(g, cam_intrinsics, cam_position, cam_quat):
     #grasp position in world coordinates
     cam_pos = np.array(cam_position).reshape((3, 1))
     
-    print(f"Inputs to calculate p_world--p_cam {p_cam} cam_rot_inv {cam_rot_inv} cam_pos {cam_pos}")
-
     p_world = cam_rot_inv @ p_cam + cam_pos
     #print(f"Position World Perspective (x,y,z): {p_world}")
     
@@ -226,7 +221,6 @@ def get_6D_grasps(grasps2D_list, camera_intrinsics, cam_pos, cam_quat):
 def ggcnn_get_grasp(depth_image, camera_intrinsics, cam_pos, cam_quat, number_grasps,seg_img=None, rotation=0.0, zoom=1.0, output_size = 300):
     
     depth_img_inst = image.DepthImage(depth_image)
-    print("DEPTH IMAGE WERT direkt nach input in Funktion [328,244] {}".format(depth_image[244][328]))
     #preprocessing image
     og_depth_img, preprocessed_depth_image = preprocessing(depth_img_inst, seg_img, rotation, zoom, output_size)
 
@@ -238,29 +232,28 @@ def ggcnn_get_grasp(depth_image, camera_intrinsics, cam_pos, cam_quat, number_gr
 
     #derive performable grasp pose -> position in cartesian coordinates [x,y,z], 
     # orientation as quaternion [x0, x1, x2, x3]
-    print("OG DEPTH IMAGE WERT an [158,154] {}".format(og_depth_img[154][158]))
     # hier wird auch depth Wert initialisiert
     grasps2D = detect_grasps(og_depth_img, q_img, ang_img, no_grasps=number_grasps)
-    print('2D GRASP Center: {}, Angle: {}, Depth {}'.format(grasps2D[0].center, grasps2D[0].angle, grasps2D[0].depth))
+    #print('2D GRASP Center: {}, Angle: {}, Depth {}'.format(grasps2D[0].center, grasps2D[0].angle, grasps2D[0].depth))
     
-    fig, ax = plt.subplots( nrows=1, ncols=2, figsize=(10, 5) )  # create figure & 1 axis
-    ax[0].imshow(og_depth_img)
-    ax[0].scatter(grasps2D[0].center[1],grasps2D[0].center[0], c='g')
+    #fig, ax = plt.subplots( nrows=1, ncols=2, figsize=(10, 5) )  # create figure & 1 axis
+    #ax[0].imshow(og_depth_img)
+    #ax[0].scatter(grasps2D[0].center[1],grasps2D[0].center[0], c='g')
 
     grasps2D_uncropped = uncrop_2D_grasps(grasps2D, output_size)
-    print('UNCROPPED 2D GRASP Center: {}'.format(grasps2D_uncropped[0].center))
+    #print('UNCROPPED 2D GRASP Center: {}'.format(grasps2D_uncropped[0].center))
 
     
 
-    ax[1].imshow(depth_image)
-    ax[1].scatter(grasps2D_uncropped[0].center[1],grasps2D_uncropped[0].center[0], c='r')
+    #ax[1].imshow(depth_image)
+    #ax[1].scatter(grasps2D_uncropped[0].center[1],grasps2D_uncropped[0].center[0], c='r')
 
     
 
-    fig.savefig(Path.home() / "Pictures" / "2D grasps debugging")
+    #fig.savefig(Path.home() / "Pictures" / "2D grasps debugging")
 
     grasps6D = get_6D_grasps(grasps2D_uncropped, camera_intrinsics, cam_pos, cam_quat)
-    print('6D GRASP: position: {}, orientation: {}'.format(grasps6D[0].position, grasps6D[0].orientation))
+    #print('6D GRASP: position: {}, orientation: {}'.format(grasps6D[0].position, grasps6D[0].orientation))
     
     #fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
     #axs[0].imshow(depth_image)

@@ -121,11 +121,12 @@ class Image:
         i.zoom(*args, **kwargs)
         return i
     
-    def mask(self, mask=None, mask_value=1.5, set_value =1.02):
+    def mask(self,depth_img, mask=None, mask_value=1.5, set_value =1.02):
         if mask is not None:
             mask = mask.astype(bool)
             masked_image = np.zeros_like(self.img)
-            masked_image[:] = 1.018996
+            #masked_image[:] = 1.018996
+            masked_image[:] = depth_img[299][299]
             #masked_image = self.img.copy()
             masked_image[mask] = self.img[mask]
         else:

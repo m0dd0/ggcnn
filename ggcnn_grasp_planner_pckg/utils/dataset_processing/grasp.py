@@ -444,15 +444,18 @@ def detect_grasps(depth_img, q_img, ang_img, width_img=None, no_grasps=1):
     :param no_grasps: Max number of grasps to return
     :return: list of Grasps
     """
-    fig, ax = plt.subplots( nrows=1, ncols=2, figsize=(10, 5) )  # create figure & 1 axis
-    ax[0].imshow(q_img)
-    
-    fig.savefig(Path.home() / "Pictures" / "detect 2D grasps")
+    #fig, ax = plt.subplots( nrows=1, ncols=2, figsize=(10, 5) ) 
+    #ax[0].imshow(q_img)
+    #fig.savefig(Path.home() / "Pictures" / "detect 2D grasps")
 
     local_max = peak_local_max(q_img, min_distance=20, num_peaks=no_grasps)
+    #sort the local max grasps list by actual global grasp quality
+    pixel_values = q_img[local_max[:,0], local_max[:,1]]
+    sorted_indices = np.argsort(pixel_values)[::-1]
+    sorted_max = local_max[sorted_indices]
 
     grasps = []
-    for grasp_point_array in local_max:
+    for grasp_point_array in sorted_max:
         grasp_point = tuple(grasp_point_array)
 
         grasp_angle = ang_img[grasp_point]
